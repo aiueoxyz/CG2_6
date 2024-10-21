@@ -20,12 +20,8 @@ extern IMGUI_IMPL_API LRESULT ImGui_ImplWin32_WndProcHandler(HWND hWmd, UINT msg
 #pragma comment(lib,"dxgi.lib")
 #pragma comment(lib,"dxguid.lib")
 #pragma comment(lib, "dxcompiler.lib")
-#define DIRECTINPUT_VERSION 0x0800 // DirectInputのバージョン設定
-#include <dinput.h>
 #include "Input.h"
 
-#pragma comment(lib, "dinput8.lib")
-#pragma comment(lib, "dxguid.lib")
 
 //ウィンドウプロシージャ
 LRESULT CALLBACK WindowProc(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam) {
@@ -857,10 +853,6 @@ int WINAPI WinMain(
 		infoQueue->Release();
 	}
 #endif
-
-	// DirectInputの初期化
-	IDirectInput8* directInput = nullptr;
-	result = DirectInput8Create();
 
 	// ポインタ
 	Input* input = nullptr;
