@@ -20,6 +20,12 @@ extern IMGUI_IMPL_API LRESULT ImGui_ImplWin32_WndProcHandler(HWND hWmd, UINT msg
 #pragma comment(lib,"dxgi.lib")
 #pragma comment(lib,"dxguid.lib")
 #pragma comment(lib, "dxcompiler.lib")
+#define DIRECTINPUT_VERSION 0x0800 // DirectInputのバージョン設定
+#include <dinput.h>
+#include "Input.h"
+
+#pragma comment(lib, "dinput8.lib")
+#pragma comment(lib, "dxguid.lib")
 
 //ウィンドウプロシージャ
 LRESULT CALLBACK WindowProc(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam) {
@@ -93,10 +99,10 @@ struct Vector3 {
 };
 
 struct Vector4 {
-	float w;
 	float x;
 	float y;
 	float z;
+	float w;
 };
 
 struct Matrix4x4 {
@@ -142,12 +148,14 @@ float cot(float radian) {
 Matrix4x4 Multiply(const Matrix4x4& m1, const Matrix4x4& m2) {
 	Matrix4x4 answerMultiply = {};
 
-	for (int i = 0; i < 4; i++)
+	for (int i = 0; i < 4; i++) {
 		for (int j = 0; j < 4; j++) {
 			for (int k = 0; k < 4; k++) {
 				answerMultiply.m[i][j] += m1.m[i][k] * m2.m[k][j];
 			}
 		}
+	}
+
 	return answerMultiply;
 }
 
@@ -169,7 +177,7 @@ Matrix4x4 MakeIdentity4x4() {
 }
 
 // 逆行列
-Matrix4x4 Invers(const Matrix4x4& m) {
+Matrix4x4 Inverse(const Matrix4x4& m) {
 	float determinant =
 		+m.m[0][0] * m.m[1][1] * m.m[2][2] * m.m[3][3]
 		+ m.m[0][0] * m.m[1][2] * m.m[2][3] * m.m[3][1]
@@ -361,8 +369,7 @@ Matrix4x4 MakeAffineMatrix(const Vector3& scale, const Vector3& rotate, const Ve
 
 // 透視投影行列
 Matrix4x4 MakePerspectiveFovMatrix(float fovY, float aspectRatio, float nearClip, float ferClip) {
-	float Cot = 1.0f / std::tan(fovY / 2);
-
+	
 	float result1 = (1 / aspectRatio) * cot(fovY / 2.0f);
 	float result2 = cot(fovY / 2.0f);
 	float result3 = ferClip / (ferClip - nearClip);
@@ -850,6 +857,17 @@ int WINAPI WinMain(
 		infoQueue->Release();
 	}
 #endif
+
+	// DirectInputの初期化
+	IDirectInput8* directInput = nullptr;
+	result = DirectInput8Create();
+
+	// ポインタ
+	Input* input = nullptr;
+	// 入力の初期化
+	input = new Input();
+	input->Initialize(wc.hInstance, hwnd);
+
 	//コマンドキューを生成する
 	ID3D12CommandQueue* commandQueue = nullptr;
 	D3D12_COMMAND_QUEUE_DESC commandQueueDesc{};
@@ -1016,10 +1034,10 @@ int WINAPI WinMain(
 	rasterizerDesc.FillMode = D3D12_FILL_MODE_SOLID;
 
 	// Shaderをコンパイルする
-	IDxcBlob* vertexShaderBlob = CompileShader(L"Object3d.VS.hlsl", L"vs_6_0", dxcUtils, dxcCompiler, includeHandler);
+	IDxcBlob* vertexShaderBlob = CompileShader(L"resources/shaders/Object3d.VS.hlsl", L"vs_6_0", dxcUtils, dxcCompiler, includeHandler);
 	assert(vertexShaderBlob != nullptr);
 
-	IDxcBlob* pixelShaderBlob = CompileShader(L"Object3d.PS.hlsl", L"ps_6_0", dxcUtils, dxcCompiler, includeHandler);
+	IDxcBlob* pixelShaderBlob = CompileShader(L"resources/shaders/Object3d.PS.hlsl", L"ps_6_0", dxcUtils, dxcCompiler, includeHandler);
 	assert(pixelShaderBlob != nullptr);
 
 	D3D12_GRAPHICS_PIPELINE_STATE_DESC graphicsPipelineStateDesc{};
@@ -1176,7 +1194,7 @@ int WINAPI WinMain(
 	transformationMatrixResource->Map(0, nullptr, reinterpret_cast<void**>(&transformationMatrixData));
 	// 単位行列を書きこんでおく
 	*transformationMatrixData = MakeIdentity4x4();
-	wvpResource->Map(0, nullptr, reinterpret_cast<void**>(&transformationMatrixData));
+	//wvpResource->Map(0, nullptr, reinterpret_cast<void**>(&transformationMatrixData));
 
 	// Sprite用の頂点リソースを作る
 	ID3D12Resource* vertexResourceSprite = CreateBufferResource(device, sizeof(VertexData) * 6);
@@ -1316,7 +1334,7 @@ Transform uvTransformSprite{ {1.0f, 1.0f, 1.0f}, {0.0f, 0.0f, 0.0f}, {0.0f, 0.0f
 			Matrix4x4 worldMatrix = MakeAffineMatrix(transform.scale, transform.rotate, transform.translate);
 			*wvpData = worldMatrix;
 			Matrix4x4 cameraMatrix = MakeAffineMatrix(cameraTransform.scale, cameraTransform.rotate, cameraTransform.translate);
-			Matrix4x4 viewMatrix = Invers(cameraMatrix);
+			Matrix4x4 viewMatrix = Inverse(cameraMatrix);
 			Matrix4x4 projectionMatrix = MakePerspectiveFovMatrix(0.45f, float(kClientWidth) / float(kClientHeight), 0.1f, 100.0f);
 			Matrix4x4 worldViewProjectionMatrix = Multiply(worldMatrix, Multiply(viewMatrix, projectionMatrix));
 			*transformationMatrixData = worldViewProjectionMatrix;
@@ -1398,7 +1416,7 @@ Transform uvTransformSprite{ {1.0f, 1.0f, 1.0f}, {0.0f, 0.0f, 0.0f}, {0.0f, 0.0f
 			commandList->SetGraphicsRootConstantBufferView(0, materialResource->GetGPUVirtualAddress());
 
 			// wvp用のCBufferの場所を設定
-			commandList->SetGraphicsRootConstantBufferView(1, wvpResource->GetGPUVirtualAddress());
+			commandList->SetGraphicsRootConstantBufferView(1, transformationMatrixResource->GetGPUVirtualAddress());
 			// 描画!（DrawCall/ドローコール）。DrawInstancedの第1引数の頂点数を6にして6頂点描画に使うようにする
 			commandList->DrawInstanced(UINT(modelData.vertices.size()), 1, 0, 0);
 			// Sprite用の描画。変更が必要なものだけ変更する
@@ -1513,6 +1531,9 @@ Transform uvTransformSprite{ {1.0f, 1.0f, 1.0f}, {0.0f, 0.0f, 0.0f}, {0.0f, 0.0f
 		debug->Release();
 	}
 	return 0;
+
+	// 入力解放
+	delete input;
 
 	CoUninitialize();
 }
