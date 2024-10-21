@@ -20,6 +20,7 @@ extern IMGUI_IMPL_API LRESULT ImGui_ImplWin32_WndProcHandler(HWND hWmd, UINT msg
 #pragma comment(lib,"dxgi.lib")
 #pragma comment(lib,"dxguid.lib")
 #pragma comment(lib, "dxcompiler.lib")
+#include "Input.h"
 
 //ウィンドウプロシージャ
 LRESULT CALLBACK WindowProc(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam) {
@@ -850,6 +851,18 @@ int WINAPI WinMain(
 		infoQueue->Release();
 	}
 #endif
+
+	// ポインタ
+	Input* input = nullptr;
+
+	// 入力の初期化
+	input = new Input();
+	input->Initialize(wc.hInstance, hwnd);
+
+	// 入力の更新
+	input->Update();
+
+
 	//コマンドキューを生成する
 	ID3D12CommandQueue* commandQueue = nullptr;
 	D3D12_COMMAND_QUEUE_DESC commandQueueDesc{};
