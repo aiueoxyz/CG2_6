@@ -1177,7 +1177,7 @@ int WINAPI WinMain(
 	
 	// 単位行列を書きこんでおく
 	*wvpData = MakeIdentity4x4();
-
+	
 	// transformationMatrix用のリソースを作る。Matrix4x4 1つ分のサイズを用意する
 	ID3D12Resource* transformationMatrixResource = CreateBufferResource(device, sizeof(Matrix4x4));
 	// データを書き込む
@@ -1296,9 +1296,9 @@ int WINAPI WinMain(
 	};*/
 
 	// Transform変数を作る
-Transform transform{ {1.0f, 1.0f, 1.0f}, {0.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 0.0f} };
-Transform cameraTransform{ {1.0f, 1.0f, 1.0f}, {0.0f, 0.0f, 0.0f}, {0.0f, 0.0f, -5.0f} };
-Transform uvTransformSprite{ {1.0f, 1.0f, 1.0f}, {0.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 0.0f} }; // UVTransform用の変数を用意
+	Transform transform{ {1.0f, 1.0f, 1.0f}, {0.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 0.0f} };
+	Transform cameraTransform{ {1.0f, 1.0f, 1.0f}, {0.0f, 0.0f, 0.0f}, {0.0f, 0.0f, -5.0f} };
+	Transform uvTransformSprite{ {1.0f, 1.0f, 1.0f}, {0.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 0.0f} }; // UVTransform用の変数を用意
 
 
 	// ImGuiの初期化。詳細はさして重要ではないので解説は省略する。
@@ -1347,6 +1347,11 @@ Transform uvTransformSprite{ {1.0f, 1.0f, 1.0f}, {0.0f, 0.0f, 0.0f}, {0.0f, 0.0f
 
 			// 入力の更新
 			input->Update();
+
+			// bool型に変更
+			if (input->PushKey(DIK_0)) { // 数字の0キーが押されていたら
+				OutputDebugStringA("Hit.0\n");
+			}
 
 
 			ImGui_ImplDX12_NewFrame();
