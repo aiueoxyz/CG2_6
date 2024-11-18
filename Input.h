@@ -1,21 +1,21 @@
-#pragma once
+ï»¿#pragma once
 #include <windows.h>
 #include <wrl.h>
-#define DIRECTINPUT_VERSION 0x0800 // DirectInput‚Ìƒo[ƒWƒ‡ƒ“İ’è
+#define DIRECTINPUT_VERSION 0x0800 // DirectInputã®ãƒãƒ¼ã‚¸ãƒ§ãƒ³è¨­å®š
 #include <dinput.h>
 
-// “ü—Í
+// å…¥åŠ›
 class Input {
 public:
-	// namespaceÈ—ª
+	// namespaceçœç•¥
 	template<class T> using ComPtr = Microsoft::WRL::ComPtr<T>;
 
-	// ‰Šú‰»
+	// åˆæœŸåŒ–
 	void Initialize(HINSTANCE hInstance, HWND hwnd);
-	// XV
+	// æ›´æ–°
 	void Update();
 
 private:
-	// ƒL[ƒ{[ƒh‚ÌƒfƒoƒCƒX
+	// ã‚­ãƒ¼ãƒœãƒ¼ãƒ‰ã®ãƒ‡ãƒã‚¤ã‚¹
 	ComPtr<IDirectInputDevice8> keyboard;
 };

@@ -720,48 +720,50 @@ void UploadTextureData(ID3D12Resource* texture, const DirectX::ScratchImage& mip
 	}
 }
 
-//Windowsアプリでのエントリーポイント(main関数)
+// Windowsアプリでのエントリーポイント(main関数)
 int WINAPI WinMain(
 	_In_ HINSTANCE hInstance,
 	_In_opt_ HINSTANCE hPrevInstance,
 	_In_ LPSTR lpCmdLine,
 	_In_ int nShowCmd)
 {
-	CoInitializeEx(0, COINIT_MULTITHREADED);
+	// ここから
+	//HRESULT hr = CoInitializeEx(0, COINIT_MULTITHREADED);
 
 	WNDCLASS wc{};
-	//ウィンドウプロシージャ
+	// ウィンドウプロシージャ
 	wc.lpfnWndProc = WindowProc;
-	//ウィンドウクラス名(なんでもいい)
+	// ウィンドウクラス名(なんでもいい)
 	wc.lpszClassName = L"CG2WindowClass";
-	//インスタンスハンドル
+	// インスタンスハンドル
 	wc.hInstance = GetModuleHandle(nullptr);
-	//カーソル
+	// カーソル
 	wc.hCursor = LoadCursor(nullptr, IDC_ARROW);
-	//ウィンドウクラスを登録する
+	// ウィンドウクラスを登録する
 	RegisterClass(&wc);
-	//クライアント領域のサイズ
+	// クライアント領域のサイズ
 	const int32_t kClientWidth = 1280;
 	const int32_t kClientHeight = 720;
-	//ウィンドウサイズを表す構造体にクライアント領域を入れる
+	// ウィンドウサイズを表す構造体にクライアント領域を入れる
 	RECT wrc = { 0,0,kClientWidth,kClientHeight };
-	//クライアント領域を元に実際のサイズにwrcを変更してもらう
+	// クライアント領域を元に実際のサイズにwrcを変更してもらう
 	AdjustWindowRect(&wrc, WS_OVERLAPPEDWINDOW, false);
-	//ウィンドウの生成
+	// ウィンドウの生成
 	HWND hwnd = CreateWindow(
-		wc.lpszClassName, //利用するクラス名
-		L"CG2", //タイトルバーの文字(なんでもいい)
-		WS_OVERLAPPEDWINDOW, //よく見るウィンドウスタイル
-		CW_USEDEFAULT, //表示X座標(Windowsに任せる)
-		CW_USEDEFAULT, //表示y座標(WindowsOSに任せる)
-		wrc.right - wrc.left, //ウィンドウ横幅
-		wrc.bottom - wrc.top, //ウィンドウ縦幅
-		nullptr, //親ウィンドウハンドル
-		nullptr, //メニューハンドル
-		wc.hInstance, //インスタンスハンドル
-		nullptr); //オプション
-	//ウィンドウを表示する
+		wc.lpszClassName, // 利用するクラス名
+		L"CG2", // タイトルバーの文字(なんでもいい)
+		WS_OVERLAPPEDWINDOW, // よく見るウィンドウスタイル
+		CW_USEDEFAULT, // 表示X座標(Windowsに任せる)
+		CW_USEDEFAULT, // 表示y座標(WindowsOSに任せる)
+		wrc.right - wrc.left, // ウィンドウ横幅
+		wrc.bottom - wrc.top, // ウィンドウ縦幅
+		nullptr, // 親ウィンドウハンドル
+		nullptr, // メニューハンドル
+		wc.hInstance, // インスタンスハンドル
+		nullptr); // オプション
+	// ウィンドウを表示する
 	ShowWindow(hwnd, SW_SHOW);
+	// ここまで
 
 #ifdef _DEBUG
 	ID3D12Debug1* debugController = nullptr;
@@ -1296,9 +1298,13 @@ int WINAPI WinMain(
 	};*/
 
 	// Transform変数を作る
-Transform transform{ {1.0f, 1.0f, 1.0f}, {0.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 0.0f} };
-Transform cameraTransform{ {1.0f, 1.0f, 1.0f}, {0.0f, 0.0f, 0.0f}, {0.0f, 0.0f, -5.0f} };
-Transform uvTransformSprite{ {1.0f, 1.0f, 1.0f}, {0.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 0.0f} }; // UVTransform用の変数を用意
+	Transform transform{ {1.0f, 1.0f, 1.0f}, {0.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 0.0f} };
+	Transform cameraTransform{ {1.0f, 1.0f, 1.0f}, {0.0f, 0.0f, 0.0f}, {0.0f, 0.0f, -5.0f} };
+	Transform uvTransformSprite{ {1.0f, 1.0f, 1.0f}, {0.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 0.0f} }; // UVTransform用の変数を用意
+
+
+	// 入力の更新
+	input->Update();
 
 
 	// ImGuiの初期化。詳細はさして重要ではないので解説は省略する。
@@ -1343,11 +1349,6 @@ Transform uvTransformSprite{ {1.0f, 1.0f, 1.0f}, {0.0f, 0.0f, 0.0f}, {0.0f, 0.0f
 			uvTransformMatrix = Multiply(uvTransformMatrix, MakeRotateZMatrix(uvTransformSprite.rotate.z));
 			uvTransformMatrix = Multiply(uvTransformMatrix, MakeTranslateMatrix(uvTransformSprite.translate));
 			materialDataSprite->uvTransform = uvTransformMatrix;*/
-
-
-			// 入力の更新
-			input->Update();
-
 
 			ImGui_ImplDX12_NewFrame();
 			ImGui_ImplWin32_NewFrame();
