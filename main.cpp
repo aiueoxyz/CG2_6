@@ -1482,6 +1482,8 @@ int WINAPI WinMain(
 	ImGui::DestroyContext();
 
 	//解放処理
+	delete input;
+
 	CloseHandle(fenceEvent);
 	fence->Release();
 	rtvDescriptorHeap->Release();
